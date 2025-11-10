@@ -1,146 +1,209 @@
-// Twoja konfiguracja Firebase
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getDatabase, ref, set, push, get, update, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+// 🔹 Wstaw tutaj swoją konfigurację Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyAy1mE_Q3fJo9W2Aa9EQUqp0L0Bn53XPHc",
-  authDomain: "impostor-game-ebc12.firebaseapp.com",
-  databaseURL: "https://impostor-game-ebc12-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "impostor-game-ebc12",
-  storageBucket: "impostor-game-ebc12.appspot.com",
-  messagingSenderId: "561452405867",
-  appId: "1:561452405867:web:24fb4cdf0320c2c3488d2e",
-  measurementId: "G-DKBLTBFHJ5"
+    apiKey: "TWOJE_API_KEY",
+    authDomain: "TWOJE_AUTH_DOMAIN",
+    databaseURL: "TWOJE_DATABASE_URL",
+    projectId: "TWOJE_PROJECT_ID",
+    storageBucket: "TWOJE_STORAGE_BUCKET",
+    messagingSenderId: "TWOJE_SENDER_ID",
+    appId: "TWOJE_APP_ID"
 };
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-// Dane gry
-let playerName, roomCode, playerId;
-let roomRef, playersRef, currentWord, impostorId;
+// ---------- ZMIENNE ----------
+let playerName = "";
+let roomCode = "";
+let isHost = false;
+let playerId = "";
+let playersData = {};
 let round = 1;
-const totalRounds = 10;
+let gameStarted = false;
 
-// Funkcja dołączenia
-function joinRoom() {
-  playerName = document.getElementById('playerName').value.trim();
-  roomCode = document.getElementById('roomCode').value.trim();
-  if (!playerName || !roomCode) return alert("Podaj imię i kod pokoju");
+// ---------- ELEMENTY ----------
+const entryDiv = document.getElementById('entry');
+const lobbyDiv = document.getElementById('lobby');
+const gameDiv = document.getElementById('game');
+const playerListEl = document.getElementById('playerList');
+const hostControls = document.getElementById('hostControls');
+const startGameBtn = document.getElementById('startGameBtn');
+const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+const wordDisplay = document.getElementById('wordDisplay');
+const submitWordDiv = document.getElementById('submitWordDiv');
+const playerWordInput = document.getElementById('playerWord');
+const submitWordBtn = document.getElementById('submitWordBtn');
+const voteDiv = document.getElementById('voteDiv');
+const voteListEl = document.getElementById('voteList');
+const roundResults = document.getElementById('roundResults');
+const roundInfo = document.getElementById('roundInfo');
+const nextRoundBtn = document.getElementById('nextRoundBtn');
+const roundNumberEl = document.getElementById('roundNumber');
 
-  document.getElementById('login').style.display = 'none';
-  document.getElementById('game').style.display = 'block';
-  document.getElementById('roomDisplay').innerText = roomCode;
+// ---------- PRZYCISKI ----------
+document.getElementById('createBtn').addEventListener('click', createRoom);
+document.getElementById('joinBtn').addEventListener('click', joinRoom);
+startGameBtn.addEventListener('click', startGame);
+submitWordBtn.addEventListener('click', submitWord);
+nextRoundBtn.addEventListener('click', nextRound);
 
-  roomRef = database.ref('rooms/' + roomCode);
-  playersRef = roomRef.child('players');
+// ---------- FUNKCJE ----------
 
-  playerId = playersRef.push({name: playerName, points: 0, vote: null}).key;
-
-  listenPlayers();
-  listenRound();
+// Generowanie losowego kodu pokoju
+function generateRoomCode() {
+    return Math.floor(1000 + Math.random() * 9000).toString();
 }
 
-// Wyświetlanie listy graczy
-function listenPlayers() {
-  playersRef.on('value', snapshot => {
-    const playersListDiv = document.getElementById('playersList');
-    playersListDiv.innerHTML = '';
-    snapshot.forEach(child => {
-      const data = child.val();
-      const btn = document.createElement('button');
-      btn.innerText = data.name;
-      btn.onclick = () => vote(child.key);
-      playersListDiv.appendChild(btn);
+// Stworzenie pokoju przez hosta
+async function createRoom() {
+    playerName = document.getElementById('playerName').value.trim();
+    if (!playerName) return alert("Podaj imię!");
+
+    roomCode = generateRoomCode();
+    playerId = push(ref(db, 'rooms/' + roomCode + '/players')).key;
+    isHost = true;
+
+    await set(ref(db, 'rooms/' + roomCode), {
+        host: playerName,
+        gameStarted: false,
+        round: 1,
+        impostor: null,
+        word: null
     });
-  });
+
+    await set(ref(db, 'rooms/' + roomCode + '/players/' + playerId), {
+        name: playerName,
+        word: "",
+        vote: null,
+        score: 0
+    });
+
+    enterLobby();
+}
+
+// Dołączenie do istniejącego pokoju
+async function joinRoom() {
+    playerName = document.getElementById('playerName').value.trim();
+    if (!playerName) return alert("Podaj imię!");
+
+    roomCode = document.getElementById('roomCodeJoin').value.trim();
+    if (!roomCode) return alert("Podaj kod pokoju!");
+
+    const roomSnap = await get(ref(db, 'rooms/' + roomCode));
+    if (!roomSnap.exists()) return alert("Pokój nie istnieje!");
+
+    const playersSnap = await get(ref(db, 'rooms/' + roomCode + '/players'));
+    if (Object.keys(playersSnap.val() || {}).length >= 4) return alert("Pokój pełny!");
+
+    playerId = push(ref(db, 'rooms/' + roomCode + '/players')).key;
+    await set(ref(db, 'rooms/' + roomCode + '/players/' + playerId), {
+        name: playerName,
+        word: "",
+        vote: null,
+        score: 0
+    });
+
+    enterLobby();
+}
+
+// Wejście do lobby
+function enterLobby() {
+    entryDiv.style.display = 'none';
+    lobbyDiv.style.display = 'block';
+    roomCodeDisplay.textContent = roomCode;
+
+    if (isHost) hostControls.style.display = 'block';
+
+    // Nasłuchiwanie graczy
+    const playersRef = ref(db, 'rooms/' + roomCode + '/players');
+    onValue(playersRef, (snapshot) => {
+        playersData = snapshot.val() || {};
+        renderPlayers();
+    });
+}
+
+// Wyświetlenie listy graczy
+function renderPlayers() {
+    playerListEl.innerHTML = '';
+    Object.entries(playersData).forEach(([id, data]) => {
+        const li = document.createElement('li');
+        li.textContent = data.name;
+        playerListEl.appendChild(li);
+    });
+}
+
+// Rozpoczęcie gry przez hosta
+async function startGame() {
+    if (Object.keys(playersData).length < 4) return alert("Potrzebni są 4 gracze!");
+    const playerIds = Object.keys(playersData);
+    const impostorIndex = Math.floor(Math.random() * 4);
+    const words = ["MEM", "TikTok", "Pizza", "Netflix", "Selfie", "Viral", "Kot", "Siema"];
+    const chosenWord = words[Math.floor(Math.random() * words.length)];
+
+    await update(ref(db, 'rooms/' + roomCode), {
+        gameStarted: true,
+        impostor: playerIds[impostorIndex],
+        word: chosenWord,
+        round: 1
+    });
+
+    startRound();
 }
 
 // Rozpoczęcie rundy
-function listenRound() {
-  roomRef.child('round').on('value', snap => {
-    if (!snap.exists()) {
-      startNewRound();
-    } else {
-      const roundData = snap.val();
-      currentWord = roundData.word;
-      impostorId = roundData.impostorId;
-      showWordSection();
-    }
-  });
+function startRound() {
+    lobbyDiv.style.display = 'none';
+    gameDiv.style.display = 'block';
+    round = 1;
+    roundNumberEl.textContent = round;
+
+    updateWordDisplay();
 }
 
-// Sekcja z hasłem
-function showWordSection() {
-  const wordSection = document.getElementById('wordSection');
-  wordSection.style.display = 'block';
-  document.getElementById('wordDisplay').innerText = (playerId === impostorId) ? "IMPOSTOR" : currentWord;
+// Wyświetlenie słowa lub "IMPOSTOR"
+function updateWordDisplay() {
+    const currentPlayer = playersData[playerId];
+    if (!currentPlayer) return;
+
+    const roomRef = ref(db, 'rooms/' + roomCode);
+    get(roomRef).then(snapshot => {
+        const roomData = snapshot.val();
+        if (playerId === roomData.impostor) {
+            wordDisplay.textContent = "IMPOSTOR";
+        } else {
+            wordDisplay.textContent = roomData.word;
+        }
+    });
 }
 
-// Pokazanie głosowania
-function showVoting() {
-  document.getElementById('voteButton').disabled = true;
-  const votingSection = document.getElementById('votingSection');
-  votingSection.style.display = 'block';
+// Wysłanie słowa przez gracza
+async function submitWord() {
+    const word = playerWordInput.value.trim();
+    if (!word) return;
+    await update(ref(db, 'rooms/' + roomCode + '/players/' + playerId), {
+        word
+    });
+    submitWordDiv.style.display = 'none';
+    startVoting();
+}
+
+// Rozpoczęcie głosowania
+function startVoting() {
+    voteDiv.style.display = 'block';
+    voteListEl.innerHTML = '';
+    Object.entries(playersData).forEach(([id, data]) => {
+        if (id !== playerId) {
+            const li = document.createElement('li');
+            li.textContent = data.name;
+            li.addEventListener('click', () => castVote(id));
+            voteListEl.appendChild(li);
+        }
+    });
 }
 
 // Oddanie głosu
-function vote(targetId) {
-  playersRef.child(playerId).update({vote: targetId});
-  checkVotingComplete();
-}
-
-// Sprawdzenie czy wszyscy zagłosowali
-function checkVotingComplete() {
-  playersRef.once('value', snap => {
-    const players = snap.val();
-    let allVoted = true;
-    Object.values(players).forEach(p => {
-      if (!p.vote) allVoted = false;
-    });
-    if (allVoted) endRound(players);
-  });
-}
-
-// Zakończenie rundy
-function endRound(players) {
-  let pointsText = '';
-  let impostor = players[impostorId];
-  let impostorGuessed = false;
-
-  for (const [id, p] of Object.entries(players)) {
-    if (p.vote === impostorId) {
-      database.ref('rooms/' + roomCode + '/players/' + p.name).child('points').transaction(x => (x||0)+2);
-      impostorGuessed = true;
-    }
-  }
-  if (!impostorGuessed) {
-    database.ref('rooms/' + roomCode + '/players/' + impostorId).child('points').transaction(x => (x||0)+3);
-  }
-
-  document.getElementById('roundResult').style.display = 'block';
-  document.getElementById('revealedWord').innerText = currentWord;
-  document.getElementById('roundPoints').innerText = pointsText;
-}
-
-// Nowa runda
-function startNewRound() {
-  const words = ["mem", "selfie", "TikTok", "pizza", "kot", "laptop", "gra", "viral", "telefon", "kino"];
-  currentWord = words[Math.floor(Math.random()*words.length)];
-
-  playersRef.once('value', snap => {
-    const keys = Object.keys(snap.val()||{});
-    impostorId = keys[Math.floor(Math.random()*keys.length)];
-    roomRef.child('round').set({word: currentWord, impostorId: impostorId});
-    // Reset głosów
-    keys.forEach(k => playersRef.child(k).update({vote:null}));
-  });
-}
-
-function nextRound() {
-  round++;
-  if (round > totalRounds) {
-    alert("Gra zakończona!");
-    return;
-  }
-  document.getElementById('roundResult').style.display = 'none';
-  startNewRound();
-}
+async function castVote(votedId) {
+    await update
