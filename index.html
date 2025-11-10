@@ -1,41 +1,37 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Impostor Game</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Impostor Game</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="login">
-    <h2>Dołącz do gry</h2>
-    <input type="text" id="playerName" placeholder="Twoje imię">
-    <input type="text" id="roomCode" placeholder="Kod pokoju">
-    <button onclick="joinRoom()">Dołącz</button>
-  </div>
-
-  <div id="game" style="display:none;">
-    <h2>Pokój: <span id="roomDisplay"></span></h2>
-    <div id="playersList"></div>
-    <div id="wordSection" style="display:none;">
-      <h3>Hasło: <span id="wordDisplay"></span></h3>
-      <button id="voteButton" onclick="showVoting()">Odsłoń hasło</button>
+    <div id="entry">
+        <h1>Impostor Game</h1>
+        <input type="text" id="playerName" placeholder="Twoje imię">
+        <div>
+            <button id="createBtn">Stwórz pokój</button>
+            <input type="text" id="roomCodeJoin" placeholder="Kod pokoju">
+            <button id="joinBtn">Dołącz do pokoju</button>
+        </div>
     </div>
-    <div id="votingSection" style="display:none;">
-      <h3>Oddaj głos na Impostora</h3>
-      <div id="voteOptions"></div>
-    </div>
-    <div id="roundResult" style="display:none;">
-      <h3>Runda zakończona!</h3>
-      <p>Hasło: <span id="revealedWord"></span></p>
-      <p id="roundPoints"></p>
-      <button id="nextRoundBtn" onclick="nextRound()">Następna runda</button>
-    </div>
-  </div>
 
-  <script src="https://www.gstatic.com/firebasejs/10.2.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.2.0/firebase-database-compat.js"></script>
-  <script src="app.js"></script>
-</body>
-</html>
+    <div id="lobby" style="display:none;">
+        <h2>Pokój: <span id="roomCodeDisplay"></span></h2>
+        <h3>Gracze:</h3>
+        <ul id="playerList"></ul>
+        <div id="hostControls" style="display:none;">
+            <button id="startGameBtn">Rozpocznij grę</button>
+        </div>
+    </div>
 
+    <div id="game" style="display:none;">
+        <h2>Runda <span id="roundNumber"></span>/10</h2>
+        <h3 id="wordDisplay"></h3>
+        <div id="submitWordDiv">
+            <input type="text" id="playerWord" placeholder="Podaj swoje słowo">
+            <button id="submitWordBtn">Wyślij</button>
+        </div>
+        <div id="voteDiv" style="display:none;">
+            <h3>Głosuj na impostora:</h
