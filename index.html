@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Impostor Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="login">
+    <h2>Dołącz do gry</h2>
+    <input type="text" id="playerName" placeholder="Twoje imię">
+    <input type="text" id="roomCode" placeholder="Kod pokoju">
+    <button onclick="joinRoom()">Dołącz</button>
+  </div>
+
+  <div id="game" style="display:none;">
+    <h2>Pokój: <span id="roomDisplay"></span></h2>
+    <div id="playersList"></div>
+    <div id="wordSection" style="display:none;">
+      <h3>Hasło: <span id="wordDisplay"></span></h3>
+      <button id="voteButton" onclick="showVoting()">Odsłoń hasło</button>
+    </div>
+    <div id="votingSection" style="display:none;">
+      <h3>Oddaj głos na Impostora</h3>
+      <div id="voteOptions"></div>
+    </div>
+    <div id="roundResult" style="display:none;">
+      <h3>Runda zakończona!</h3>
+      <p>Hasło: <span id="revealedWord"></span></p>
+      <p id="roundPoints"></p>
+      <button id="nextRoundBtn" onclick="nextRound()">Następna runda</button>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.2.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.2.0/firebase-database-compat.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+
