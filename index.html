@@ -1,37 +1,46 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Impostor Game</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Impostor Game</title>
+<link rel="stylesheet" href="style.css">
+<script type="module" src="app.js"></script>
 </head>
 <body>
-    <div id="entry">
-        <h1>Impostor Game</h1>
-        <input type="text" id="playerName" placeholder="Twoje imię">
-        <div>
-            <button id="createBtn">Stwórz pokój</button>
-            <input type="text" id="roomCodeJoin" placeholder="Kod pokoju">
-            <button id="joinBtn">Dołącz do pokoju</button>
-        </div>
-    </div>
 
-    <div id="lobby" style="display:none;">
-        <h2>Pokój: <span id="roomCodeDisplay"></span></h2>
-        <h3>Gracze:</h3>
-        <ul id="playerList"></ul>
-        <div id="hostControls" style="display:none;">
-            <button id="startGameBtn">Rozpocznij grę</button>
-        </div>
+<div id="entry">
+    <h1>Impostor Game</h1>
+    <input type="text" id="playerName" placeholder="Twoje imię">
+    <div id="createDiv">
+        <button id="createBtn">Stwórz pokój</button>
     </div>
+    <div id="joinDiv">
+        <input type="text" id="roomCodeJoin" placeholder="Kod pokoju">
+        <button id="joinBtn">Dołącz do pokoju</button>
+    </div>
+</div>
 
-    <div id="game" style="display:none;">
-        <h2>Runda <span id="roundNumber"></span>/10</h2>
-        <h3 id="wordDisplay"></h3>
-        <div id="submitWordDiv">
-            <input type="text" id="playerWord" placeholder="Podaj swoje słowo">
-            <button id="submitWordBtn">Wyślij</button>
-        </div>
-        <div id="voteDiv" style="display:none;">
-            <h3>Głosuj na impostora:</h
+<div id="lobby" style="display:none;">
+    <h2>Pokój: <span id="roomCodeDisplay"></span></h2>
+    <h3>Gracze:</h3>
+    <ul id="playerList"></ul>
+    <div id="hostControls" style="display:none;">
+        <button id="startGameBtn" disabled>Rozpocznij grę</button>
+    </div>
+    <p id="lobbyInfo"></p>
+</div>
+
+<div id="game" style="display:none;">
+    <h2>Runda <span id="roundNumber"></span>/10</h2>
+    <p id="yourWord"></p>
+    <div id="voteSection" style="display:none;">
+        <h3>Oddaj głos na impostora:</h3>
+        <ul id="voteList"></ul>
+    </div>
+    <p id="roundResult"></p>
+    <button id="nextRoundBtn" style="display:none;">Nowa runda</button>
+</div>
+
+</body>
+</html>
