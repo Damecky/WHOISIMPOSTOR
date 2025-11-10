@@ -1,40 +1,5 @@
-body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    background-color: #1e1e2f;
-    color: #fff;
-}
-
-input, button {
-    padding: 10px;
-    margin: 5px;
-    font-size: 16px;
-}
-
-button {
-    cursor: pointer;
-    background-color: #ff5555;
-    border: none;
-    color: #fff;
-    border-radius: 5px;
-}
-
-button:hover {
-    background-color: #ff0000;
-}
-
-ul {
-    list-style: none;
-    padding: 0;
-}
-
-#voteList li {
-    cursor: pointer;
-    background-color: #444;
-    margin: 5px;
-    padding: 5px;
-    border-radius: 5px;
-}
-#voteList li:hover {
-    background-color: #666;
-}
+body { font-family: Arial, sans-serif; text-align:center; background:#f0f0f0; }
+button { padding:10px 20px; margin:5px; cursor:pointer; }
+input { padding:5px; margin:5px; }
+#playerList li, #voteList li { list-style:none; padding:5px; margin:5px; background:#fff; cursor:pointer; }
+#playerList li:hover, #voteList li:hover { background:#ddd; }
