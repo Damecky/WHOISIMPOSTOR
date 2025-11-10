@@ -1,46 +1,42 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Impostor Game</title>
-<link rel="stylesheet" href="style.css">
-<script type="module" src="app.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Impostor Game</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<div id="entry">
-    <h1>Impostor Game</h1>
+  <div id="login">
+    <h2>Impostor Game</h2>
     <input type="text" id="playerName" placeholder="Twoje imię">
-    <div id="createDiv">
-        <button id="createBtn">Stwórz pokój</button>
-    </div>
-    <div id="joinDiv">
-        <input type="text" id="roomCodeJoin" placeholder="Kod pokoju">
-        <button id="joinBtn">Dołącz do pokoju</button>
-    </div>
-</div>
+    <input type="text" id="roomCode" placeholder="Kod pokoju (4 cyfry)">
+    <button id="createBtn">Stwórz pokój</button>
+    <button id="joinBtn">Dołącz do pokoju</button>
+    <p id="loginMsg"></p>
+  </div>
 
-<div id="lobby" style="display:none;">
-    <h2>Pokój: <span id="roomCodeDisplay"></span></h2>
-    <h3>Gracze:</h3>
+  <div id="game" style="display:none;">
+    <h2>Pokój: <span id="roomDisplay"></span></h2>
+    <p>Gracze:</p>
     <ul id="playerList"></ul>
-    <div id="hostControls" style="display:none;">
-        <button id="startGameBtn" disabled>Rozpocznij grę</button>
-    </div>
-    <p id="lobbyInfo"></p>
-</div>
+    <button id="startGameBtn" style="display:none;">Rozpocznij grę</button>
 
-<div id="game" style="display:none;">
-    <h2>Runda <span id="roundNumber"></span>/10</h2>
-    <p id="yourWord"></p>
-    <div id="voteSection" style="display:none;">
-        <h3>Oddaj głos na impostora:</h3>
-        <ul id="voteList"></ul>
+    <div id="round" style="display:none;">
+      <h3>Twoje hasło: <span id="yourWord"></span></h3>
+      <button id="revealBtn">Odsłoń hasło</button>
+      <p id="voteMsg"></p>
+      <ul id="voteList"></ul>
+      <p id="timer"></p>
     </div>
-    <p id="roundResult"></p>
-    <button id="nextRoundBtn" style="display:none;">Nowa runda</button>
-</div>
 
+    <div id="hostPanel" style="display:none;">
+      <h3>Panel hosta - Punktacja</h3>
+      <ul id="scoreList"></ul>
+      <button id="nextRoundBtn">Nowa runda</button>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
 </body>
 </html>
